@@ -1,29 +1,39 @@
 # node-windows
 
 ![NPM version](https://img.shields.io/npm/v/node-windows?label=node-windows&logo=npm&style=for-the-badge)
-![NGN Dependencies](https://david-dm.org/coreybutler/node-windows.svg?style=for-the-badge)
+![NGN Dependencies](https://img.shields.io/librariesio/release/npm/node-windows?style=for-the-badge)
 
-[Tweet me (@goldglovecb)](http://twitter.com/goldglovecb) if you need me.
-
----
-
-**Sponsors (as of 2020)**
-
-<table cellpadding="10" cellspacing="0" border="0">
-  <tr>
-    <td><a href="https://metadoc.io"><img src="https://github.com/coreybutler/staticassets/raw/master/sponsors/metadoclogobig.png" width="200px"/></a></td>
-    <td><a href="https://butlerlogic.com"><img src="https://github.com/coreybutler/staticassets/raw/master/sponsors/butlerlogic_logo.png" width="200px"/></a></td>
-  </tr>
-</table>
-
----
-
-# node-windows
-
-  This library can be used to install/start/stop/uninstall Node scripts as Windows background services for **production** environments. This is not a tool for developing applications, it is a tool for releasing them. 
+ This library can be used to install/start/stop/uninstall Node scripts as Windows background services for **production** environments. This is not a tool for developing applications, it is a tool for releasing them. This tool generates an executable that will run your app with whichever version of Node.js is installed on the computer.
 
   See [node-mac](http://github.com/coreybutler/node-mac) and [node-linux](http://github.com/coreybutler/node-linux) if you need to support those operating systems.
+    
+[Tweet me (@goldglovecb)](http://twitter.com/goldglovecb) if you need me.
 
+## Sponsors
+<br/>
+<div>
+  <table cellpadding="5" cellspacing="0" border="0">
+    <tr>
+      <td><a href="https://metadoc.io"><img src="https://github.com/coreybutler/staticassets/raw/master/sponsors/metadoclogobig.png" width="200px"/></a></td>
+      <td><a href="https://enabledb.com"><img src="https://github.com/coreybutler/staticassets/raw/master/images/logos/logo_enabledb_w_text.png" width="200px"/></a></td>
+      <td><a href="https://butlerlogic.com"><img src="https://github.com/coreybutler/staticassets/raw/master/sponsors/butlerlogic_logo.png" width="200px"/></a></td>
+      <td width="25%" align="center"><a href="https://github.com/microsoft"><img src="https://user-images.githubusercontent.com/770982/195955265-5c3dca78-7140-4ec6-b05a-f308518643ee.png" height="30px"/></a></td>
+    </tr>
+    <tr>
+      <td colspan="4" align="center">
+        <a href="https://github.com/sponsors/coreybutler"><img src="https://img.shields.io/github/sponsors/coreybutler?label=Individual%20Sponsors&logo=github&style=social"/></a>
+        &nbsp;<a href="https://github.com/sponsors/coreybutler"><img src="https://img.shields.io/badge/-Become%20a%20Sponsor-yellow"/></a>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="4" align="center">
+        <img src="https://github.blog/wp-content/uploads/2020/09/github-stars-logo_Color.png" width="50"/><br/>
+        <b>Can't sponsor?</b><br/>Consider <a href="https://stars.github.com/nominate/" target="_blank">nominating @coreybutler for a Github star</a>.
+      </td>
+    </tr>
+  </table>
+</div>
+<br/>
 
 ## Overview
 
@@ -235,6 +245,19 @@ svc.sudo.password = 'password';
 ...
 ```
 
+### Depending on other services
+
+The service can also be made dependant on other Windows services.
+
+```js
+var svc = new Service({
+  name:'Hello World',
+  description: 'The nodejs.org example web server.',
+  script: 'C:\\path\\to\\helloworld.js',
+  dependsOn: ["serviceA"]
+});
+```
+
 ### Cleaning Up: Uninstall a Service
 
 Uninstalling a previously created service is syntactically similar to installation.
@@ -336,7 +359,7 @@ the node-windows Event Logging.
 # Event Logging
 
 New as of `v0.1.0` is a _non-C++_ based event logging utility. This utility can write to the event log,
-making your logs visible from the Event Viewer.
+making your logs visible from the Event Viewer. It uses [eventcreate](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/eventcreate) under the hood.
 
 To create a logger:
 
@@ -366,8 +389,10 @@ arguments, including a _code_ and _callback_. By default, the event code is `100
 To provide a custom event code with a log message and write that message to the console, the following code could
 be used:
 
+> **Notice:** It appears [eventcreate](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/eventcreate) only supports custom ID's <=1000.
+
 ```js
-log.info('Something different happened!', 1002, function(){
+log.info('Something different happened!', 700, function(){
   console.log('Something different happened!');
 });
 ```
@@ -380,6 +405,17 @@ var EventLogger = require('node-windows').EventLogger;
 var log = new EventLogger({
   source: 'My Event Log',
   eventLog: 'SYSTEM'
+});
+```
+
+Warning event logs that are produced by the wrapper can be suppressed by disabling it when creating the service.
+Warning logs are enabled by default.
+
+```js
+var svc = new Service({
+  name:'Hello World',
+  description: 'The nodejs.org example web server.',
+  disableWarningLogs: true,
 });
 ```
 
@@ -485,7 +521,7 @@ output on a Windows 8 computer.
 }]
 ```
 
-The regualar (non-verbose) output typically provides the `ImageName`,`PID`,`SessionName`,
+The regular (non-verbose) output typically provides the `ImageName`,`PID`,`SessionName`,
 `Session#`, `MemUsage`, and `CPUTime`.
 
 ## kill
